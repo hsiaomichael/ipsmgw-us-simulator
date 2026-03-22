@@ -10,6 +10,7 @@ Usage:
     python3 ipsmgw_ue_simulator.py --config my_lab.ini    # custom config file
 """
 
+
 import socket
 import logging
 import logging.handlers
@@ -24,77 +25,95 @@ import configparser
 import os
 
 # ============================================================
-#  CONFIGURATION LOADER
+#  STRICT CONFIG LOADER
 # ============================================================
 
 def _load_config(path: str) -> configparser.ConfigParser:
     cfg = configparser.ConfigParser()
     if not os.path.exists(path):
         print(f'[ERROR] Config file not found: {path}')
-        print(f'        Create one by copying ipsmgw_ue_simulator.ini and editing the values.')
         sys.exit(1)
     cfg.read(path)
     return cfg
 
-def _get(cfg: configparser.ConfigParser, section: str, key: str, fallback: str = '') -> str:
-    return cfg.get(section, key, fallback=fallback).strip()
 
-# ── Parse CLI args first so we know the config path ──────────
+def _require(cfg: configparser.ConfigParser, section: str, key: str) -> str:
+    if not cfg.has_section(section):
+        print(f'[CONFIG ERROR] Missing section: [{section}]')
+        sys.exit(1)
+
+    if not cfg.has_option(section, key):
+        print(f'[CONFIG ERROR] Missing key: [{section}] {key}')
+        sys.exit(1)
+
+    value = cfg.get(section, key).strip()
+    if value == '':
+        print(f'[CONFIG ERROR] Empty value: [{section}] {key}')
+        sys.exit(1)
+
+    return value
+
+# ============================================================
+#  LOAD CONFIG
+# ============================================================
+
 _ap = argparse.ArgumentParser(description='IP-SM-GW UE Simulator')
-_ap.add_argument('--config', default='ipsmgw_ue_simulator.ini',
-                 metavar='FILE',
-                 help='Path to customer config file (default: ipsmgw_ue_simulator.ini)')
+_ap.add_argument('--config', default='ipsmgw_ue_simulator.ini')
 _args = _ap.parse_args()
 
 _cfg = _load_config(_args.config)
 
 # ── Network ──────────────────────────────────────────────────
-LOCAL_IP    = _get(_cfg, 'network', 'local_ip',    '127.0.0.1')
-LOCAL_PORT  = int(_get(_cfg, 'network', 'local_port',  '5060'))
-REMOTE_HOST = _get(_cfg, 'network', 'remote_host', '127.0.0.1')
-REMOTE_PORT = int(_get(_cfg, 'network', 'remote_port', '5060'))
-ORIG_HOST   = _get(_cfg, 'network', 'orig_host',   LOCAL_IP)
+LOCAL_IP    = _require(_cfg, 'network', 'local_ip')
+LOCAL_PORT  = int(_require(_cfg, 'network', 'local_port'))
+REMOTE_HOST = _require(_cfg, 'network', 'remote_host')
+REMOTE_PORT = int(_require(_cfg, 'network', 'remote_port'))
+ORIG_HOST   = _require(_cfg, 'network', 'orig_host')
 LOCAL_URI   = f'{LOCAL_IP}:{LOCAL_PORT}'
 
 # ── Subscriber ───────────────────────────────────────────────
-DEFAULT_MSISDN = _get(_cfg, 'subscriber', 'default_msisdn', '619305004412')
-DEFAULT_IMSI   = _get(_cfg, 'subscriber', 'default_imsi',   '466924253444139')
-DEFAULT_TEL    = _get(_cfg, 'subscriber', 'default_tel',    '619375725469')
+DEFAULT_MSISDN = _require(_cfg, 'subscriber', 'default_msisdn')
+DEFAULT_IMSI   = _require(_cfg, 'subscriber', 'default_imsi')
+DEFAULT_TEL    = _require(_cfg, 'subscriber', 'default_tel')
 
-# ── SMSC / IP-SM-GW ──────────────────────────────────────────
-SMSC_GT           = _get(_cfg, 'smsc', 'smsc_gt',           '619332489454')
-SMSC_MSISDN       = _get(_cfg, 'smsc', 'smsc_msisdn',       '619332489464')
-SMSC_DOMAIN       = _get(_cfg, 'smsc', 'smsc_domain',       'smsc123-traffic.test.com')
-SMSC_DOMAIN_AU    = _get(_cfg, 'smsc', 'smsc_domain_au',    SMSC_DOMAIN)
-REGISTER_URI      = _get(_cfg, 'smsc', 'register_uri',      'smsc123.lab.mcoipsm.mnc002.mcc505.3gppnetwork.org')
-REGISTER_FROM     = _get(_cfg, 'smsc', 'register_from',     'ipsmg-test.com:5060')
-# TP-DA used in SMS-SUBMIT TPDU inside MO RP-DATA
-TP_DA_MSISDN      = _get(_cfg, 'smsc', 'tp_da_msisdn',      '619310310411')
-TP_DA_TOA         = int(_get(_cfg, 'smsc', 'tp_da_toa',     '0x91'), 16)  # default 0x91 = international
+# ── SMSC ─────────────────────────────────────────────────────
+SMSC_GT        = _require(_cfg, 'smsc', 'smsc_gt')
+SMSC_MSISDN    = _require(_cfg, 'smsc', 'smsc_msisdn')
+SMSC_DOMAIN    = _require(_cfg, 'smsc', 'smsc_domain')
+SMSC_DOMAIN_AU = _require(_cfg, 'smsc', 'smsc_domain_au')
+REGISTER_URI   = _require(_cfg, 'smsc', 'register_uri')
+REGISTER_FROM  = _require(_cfg, 'smsc', 'register_from')
+TP_DA_MSISDN   = _require(_cfg, 'smsc', 'tp_da_msisdn')
+TP_DA_TOA      = int(_require(_cfg, 'smsc', 'tp_da_toa'), 16)
 
-# ── IMS network identifiers ───────────────────────────────────
-IMS_DOMAIN        = _get(_cfg, 'ims', 'ims_domain',         'ims.mnc092.mcc466.3gppnetwork.org')
-REGISTER_TO_DOMAIN= _get(_cfg, 'ims', 'register_to_domain', 'ims.mnc002.mcc505.3gppnetwork.org')
-AUTH_DOMAIN       = _get(_cfg, 'ims', 'auth_domain',        'ims.mnc015.mcc234.3gppnetwork.org')
+# ── IMS ──────────────────────────────────────────────────────
+IMS_DOMAIN         = _require(_cfg, 'ims', 'ims_domain')
+REGISTER_TO_DOMAIN = _require(_cfg, 'ims', 'register_to_domain')
+AUTH_DOMAIN        = _require(_cfg, 'ims', 'auth_domain')
 
-# ── Charging / access-net ─────────────────────────────────────
-ICID_PREFIX       = _get(_cfg, 'charging', 'icid_prefix',       'tessbg1108.ims.mnc092.mcc466')
-ICID_GENERATED_AT = _get(_cfg, 'charging', 'icid_generated_at', 'tessbg1108.ims.mnc092.mcc466.3gppnetwork.org')
-ORIG_IOI          = _get(_cfg, 'charging', 'orig_ioi',           'ims.mnc092.mcc466.3gppnetwork.org')
-SUBSCRIBE_ICID    = _get(_cfg, 'charging', 'subscribe_icid',     '')
-SUBSCRIBE_PAN     = _get(_cfg, 'charging', 'subscribe_pan',      '')
-ACCESS_NET_INFO   = _get(_cfg, 'charging', 'access_net_info',    'IEEE-802.11n;i-wlan-node-id=2034fbc343d2')
+# ── Charging ─────────────────────────────────────────────────
+ICID_PREFIX       = _require(_cfg, 'charging', 'icid_prefix')
+ICID_GENERATED_AT = _require(_cfg, 'charging', 'icid_generated_at')
+ORIG_IOI          = _require(_cfg, 'charging', 'orig_ioi')
+SUBSCRIBE_ICID    = _require(_cfg, 'charging', 'subscribe_icid')
+SUBSCRIBE_PAN     = _require(_cfg, 'charging', 'subscribe_pan')
+ACCESS_NET_INFO   = _require(_cfg, 'charging', 'access_net_info')
 
-# ── Load test defaults ────────────────────────────────────────
-LT_DEFAULT_DEST   = _get(_cfg, 'load_test', 'default_dest_msisdn', '619363540361')
-LT_MO_COUNT       = int(_get(_cfg, 'load_test', 'mo_default_count',   '100'))
-LT_MO_TPS         = float(_get(_cfg, 'load_test', 'mo_default_tps',   '10'))
-LT_REG_COUNT      = int(_get(_cfg, 'load_test', 'reg_default_count',  '100'))
-LT_REG_TPS        = float(_get(_cfg, 'load_test', 'reg_default_tps',  '10'))
+# ── Load test ────────────────────────────────────────────────
+LT_DEFAULT_DEST = _require(_cfg, 'load_test', 'default_dest_msisdn')
+LT_MO_COUNT     = int(_require(_cfg, 'load_test', 'mo_default_count'))
+LT_MO_TPS       = float(_require(_cfg, 'load_test', 'mo_default_tps'))
+LT_REG_COUNT    = int(_require(_cfg, 'load_test', 'reg_default_count'))
+LT_REG_TPS      = float(_require(_cfg, 'load_test', 'reg_default_tps'))
 
-# ── Tag / UA strings ──────────────────────────────────────────
-DR_TAG_PREFIX     = _get(_cfg, 'tag', 'delivery_report_tag_prefix', 'ims.testcp.com-1111111111')
-USER_AGENT        = _get(_cfg, 'tag', 'user_agent',                 'DTF_UA')
+# ── Tag ──────────────────────────────────────────────────────
+DR_TAG_PREFIX = _require(_cfg, 'tag', 'delivery_report_tag_prefix')
+USER_AGENT    = _require(_cfg, 'tag', 'user_agent')
+
+print('[CONFIG] Loaded successfully')
+
+
+
 
 # Thread pool size for inbound message handling
 RX_WORKERS    = 32
