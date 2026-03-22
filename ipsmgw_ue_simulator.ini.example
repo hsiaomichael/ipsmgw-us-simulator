@@ -1,0 +1,94 @@
+# =============================================================
+#  IP-SM-GW UE Simulator – Customer Configuration
+#  Copy this file and edit for each customer/lab environment.
+#  Load with:  python3 ipsmgw_ue_simulator.py --config ipsmgw_ue_simulator.ini
+# =============================================================
+
+# -------------------------------------------------------------
+# [network]  Local and remote SIP endpoints
+# -------------------------------------------------------------
+[network]
+local_ip        = 192.168.0.100
+local_port      = 5060
+remote_host     = 192.168.0.101
+remote_port     = 5060
+# orig_host: IP used in From/Via URIs of outbound SIP messages
+# (usually the same as local_ip)
+orig_host       = 192.168.0.100
+
+# -------------------------------------------------------------
+# [subscriber]  Default UE identity used in single-shot sends
+# -------------------------------------------------------------
+[subscriber]
+default_msisdn  = 61418079001
+default_imsi    = 505014253444139
+# default_tel: P-Asserted-Identity tel URI (secondary/iWatch number) ZB-ADDR
+default_tel     = 61418079002
+
+# -------------------------------------------------------------
+# [smsc]  SMSC / IP-SM-GW addressing
+# -------------------------------------------------------------
+[smsc]
+# smsc_gt: SMSC global title used as RP-DA in MO RP-DATA PDU
+smsc_gt                 = 61918709010
+# smsc_msisdn: MSISDN of the SMSC used in SIP Request-URI and To header
+smsc_msisdn             = 61918709010
+# smsc_domain: SIP domain of the IP-SM-GW (used in To / NOTIFY target)
+smsc_domain             = smsc.test.com.au
+# smsc_domain_au: alternate domain used in NOTIFY (may be same as smsc_domain)
+smsc_domain_au          = smsc-test.com.au
+# register_uri: SIP Request-URI for REGISTER (IP-SM-GW registration endpoint)
+register_uri            = smsc.ipsm.mnc002.mcc505.3gppnetwork.org
+# register_from: From address used in REGISTER (P-CSCF or UE proxy)
+register_from           = ipsm.test.com:5060
+tp_da_msisdn = 61918079002
+tp_da_toa               = 0x91
+# -------------------------------------------------------------
+# [ims]  IMS network identifiers (used in URIs and headers)
+# -------------------------------------------------------------
+[ims]
+# ims_domain: IMS home network domain for P-Asserted-Identity and To URIs
+ims_domain              = ims.mnc092.mcc466.3gppnetwork.org
+# register_to_domain: IMS domain used in REGISTER To header
+register_to_domain      = ims.mnc002.mcc505.3gppnetwork.org
+# auth_domain: domain used in Authorization Digest username
+auth_domain             = ims.mnc015.mcc234.3gppnetwork.org
+
+# -------------------------------------------------------------
+# [charging]  P-Charging-Vector and P-Access-Network-Info
+# -------------------------------------------------------------
+[charging]
+# icid_prefix: static prefix for icid-value (a unique ID is appended)
+icid_prefix             = sbg1108.ims.mnc092.mcc466
+# icid_generated_at: node that generated the ICID
+icid_generated_at       = sbg1108.ims.mnc092.mcc466.3gppnetwork.org
+# orig_ioi: originating IOI for P-Charging-Vector
+orig_ioi                = ims.mnc092.mcc466.3gppnetwork.org
+# subscribe_icid: static icid-value used in SUBSCRIBE 200 OK
+subscribe_icid          = bg200-sgc017019.lab.ims.mnc002.mcc505.3gppnetwork.org-1579-672782-650343
+# subscribe_pan: P-Access-Network-Info returned in SUBSCRIBE 200 OK
+subscribe_pan           = 3GPP-E-UTRAN-FDD;utran-cell-id-3gpp=50501045713ffe32
+# access_net_info: P-Access-Network-Info sent in MO SMS MESSAGE
+access_net_info         = IEEE-802.11n;i-wlan-node-id=2034fbc343d2
+
+# -------------------------------------------------------------
+# [load_test]  Default load test parameters
+# -------------------------------------------------------------
+[load_test]
+# default_dest_msisdn: default B-party MSISDN for MO SMS load test
+default_dest_msisdn     = 61463540361
+# mo_default_count: default number of messages for MO burst
+mo_default_count        = 100
+# mo_default_tps: default TPS for MO burst
+mo_default_tps          = 10
+# reg_default_count: default number of messages for REGISTER burst
+reg_default_count       = 100
+# reg_default_tps: default TPS for REGISTER burst
+reg_default_tps         = 10
+
+# -------------------------------------------------------------
+# [tag]  SIP tag / user-agent strings (cosmetic / interop tuning)
+# -------------------------------------------------------------
+[tag]
+delivery_report_tag_prefix  = ims.testcp.com-1111111111
+user_agent                  = DTF_UA
