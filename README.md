@@ -354,8 +354,4 @@ ipsmgw-ue-simulator/
 | RFC 3261 | SIP: Session Initiation Protocol |
 | RFC 3680 | SIP Event Package for Registrations |
 
----
 
-## License
-
-MIT — see [LICENSE](LICENSE) for details.
