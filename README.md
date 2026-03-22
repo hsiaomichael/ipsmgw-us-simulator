@@ -108,7 +108,7 @@ smsc_msisdn     = 619332489464      # SMSC MSISDN – used in SIP Request-URI an
 smsc_domain     = smsc123-traffic.oper.com.tw   # SIP domain of the IP-SM-GW
 smsc_domain_au  = smsc123-traffic.oper.com.au   # Alternate domain used in NOTIFY target
 register_uri    = smsc123.lab.mcoipsm.mnc002.mcc505.3gppnetwork.org  # REGISTER Request-URI
-register_from   = pxms412-oper.com.tw:5060       # From address used in REGISTER
+register_from   = tmsxx-oper.com.tw:5060       # From address used in REGISTER
 
 # -------------------------------------------------------------
 # [ims]  IMS network identifiers
@@ -122,18 +122,18 @@ auth_domain         = ims.mnc015.mcc234.3gppnetwork.org   # Authorization Digest
 # [charging]  P-Charging-Vector and P-Access-Network-Info
 # -------------------------------------------------------------
 [charging]
-icid_prefix         = 3l1sbg1108.ims.mnc092.mcc466                      # icid-value prefix
-icid_generated_at   = 3l1sbg1108.ims.mnc092.mcc466.3gppnetwork.org      # icid-generated-at
+icid_prefix         = a300sbg1108.ims.mnc092.mcc466                      # icid-value prefix
+icid_generated_at   = a300sbg1108.ims.mnc092.mcc466.3gppnetwork.org      # icid-generated-at
 orig_ioi            = ims.mnc092.mcc466.3gppnetwork.org                  # orig-ioi
 subscribe_icid      = kklji1sbg200-sgc017019.lab.ims.mnc002.mcc505.3gppnetwork.org-1579-672782-650343
-subscribe_pan       = 3GPP-E-UTRAN-FDD;utran-cell-id-3gpp=50503045713ffe32
-access_net_info     = IEEE-802.11n;i-wlan-node-id=2034fbc343d2           # P-Access-Network-Info in MO SMS
+subscribe_pan       = 3GPP-E-UTRAN-FDD;utran-cell-id-3gpp=50503045713ffe12
+access_net_info     = IEEE-802.11n;i-wlan-node-id=2034fbc323d2           # P-Access-Network-Info in MO SMS
 
 # -------------------------------------------------------------
 # [load_test]  Default load test parameters
 # -------------------------------------------------------------
 [load_test]
-default_dest_msisdn = 619363540361  # Default B-party MSISDN for MO SMS burst
+default_dest_msisdn = 619313540361  # Default B-party MSISDN for MO SMS burst
 mo_default_count    = 100           # Default message count for MO burst
 mo_default_tps      = 10            # Default TPS for MO burst
 reg_default_count   = 100           # Default message count for REGISTER burst
